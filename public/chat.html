@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Navigation Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="mobile-app">
+
+    <!-- 1. HOME TAB VIEW -->
+    <div id="homeScreen" class="screen" style="padding: 0px; overflow-y: auto; padding-bottom: 80px;">
+        
+        <header class="app-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0; font-size: 1.25rem; font-weight: bold; color: #4c6ef5;">Trebor Social</h1>
+        </header>
+        <!-- Home Screen 2x3 Grid Container -->
+        <div style="background: #fff; padding: 10px; border-bottom: 1px solid #dbdbdb;">
+            <div id="dynamicStoriesList" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 10px; margin-bottom: 14px;">
+                <!-- Populated dynamically -->
+            </div>
+            <button onclick="openAllStoriesPage()" style="width: 100%; background: #f0f2f5; border: none; border-radius: 8px; padding: 4px; font-weight: 600; color: #0095f6; font-size: 10px; cursor: pointer;">
+                View All Stories →
+            </button>
+        </div>
+
+        <!-- WhatsApp-Style "Updates" Modal -->
+        <div id="allStoriesModal" style="display: none; position: fixed; inset: 0; background: #fff; z-index: 1000; flex-direction: column; overflow-y: auto;">
+            <div style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #dbdbdb;">
+                <button onclick="closeAllStoriesPage()" style="background: none; border: none; font-size: 18px; cursor: pointer; margin-right: 16px;">←</button>
+                <h2 style="font-size: 18px; margin: 0; font-weight: 600;">Updates</h2>
+            </div>
+            <div id="allStoriesList" style="padding: 12px 16px;"></div>
+        </div>
+
+
+        <!-- Friend Requests Strip Container -->
+        <div id="RequestsDiv" style="background: #fff; padding: 10px; border-bottom: 1px solid #dbdbdb; margin-top: 6px;">
+            <!-- Header Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-weight: 600; font-size: 13px; color: #262626;">Friend Requests</span>
+                <span id="friendRequestsCount" style="font-size: 12px; color: #8e8e96;"></span>
+            </div>
+            
+            <!-- Horizontal Scrollable Strip (Max 10 visible) -->
+            <div id="dynamicFriendRequestsList" style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 6px;">
+                <!-- Friend request cards populate here -->
+            </div>
+            
+            <!-- View All Requests Button -->
+            <button onclick="openAllFriendRequestsPage()" style="width: 100%; background: #f0f2f5; border: none; border-radius: 8px; padding: 4px; font-weight: 600; color: #0095f6; font-size: 10px; cursor: pointer;">
+                View All Requests →
+            </button>
+        </div>
+                <!-- "View All" Friend Requests Modal -->
+                <div id="allFriendRequestsModal" style="display: none; position: fixed; inset: 0; background: #fff; z-index: 1000; flex-direction: column; overflow-y: auto;">
+                    <div style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #dbdbdb;">
+                        <button onclick="closeAllFriendRequestsPage()" style="background: none; border: none; font-size: 18px; cursor: pointer; margin-right: 16px;">←</button>
+                        <h2 style="font-size: 18px; margin: 0; font-weight: 600;">Friend Requests</h2>
+                    </div>
+                    <div id="allFriendRequestsList" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 12px;"></div>
+                </div>
+
+
+<!-- Explore Reels Section (2x2 Grid) --------------->
+               <!-- Trending Reels Preview Section (2x2 Grid) -->
+                <div style="background: #fff; padding: 8px 12px; border-bottom: 1px solid #dbdbdb; margin-top: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 600; font-size: 13px; color: #262626;">Trending Reels</span>
+                    </div>
+                    
+                    <!-- 2x2 Grid Container -->
+                    <div id="dynamicTopReelsGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 6px;">
+                        <!-- Top reel cards populate here dynamically -->
+                    </div>
+                    
+                    <!-- View All Reels Button -->
+                    <button onclick="window.location.href='/reels.html'" style="width: 100%; background: #f0f2f5; border: none; border-radius: 8px; padding: 4px; font-weight: 600; color: #0095f6; font-size: 10px; cursor: pointer;">
+                        View More Reels →
+                    </button>
+                </div>
+<!-------------Reels Explorer Div End here --------------------------------->
+
+<!------------------Reels Upload Modal Starts here -->
+
+
+            <!-- Upload Modal (Hidden by Default) -->
+            <div id="reelUploadModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <h3 style="margin-bottom: 15px; font-size: 16px; color: #262626;">Upload New Reel</h3>
+                    
+                    <form id="reelForm" onsubmit="submitReelUpload(event)">
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #8e8e96; display: block; margin-bottom: 4px;">Select Video (.mp4, .mov)</label>
+                            <input type="file" id="reelVideoFile" accept="video/*" required style="width: 100%; font-size: 13px;">
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #8e8e96; display: block; margin-bottom: 4px;">Caption</label>
+                            <textarea id="reelCaption" placeholder="Write a caption..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #dbdbdb; border-radius: 6px; font-size: 13px; resize: none;"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" onclick="closeReelUploadModal()" style="flex: 1; background: #efefef; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer;">Cancel</button>
+                            <button type="submit" id="reelSubmitBtn" style="flex: 1; background: #0095f6; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer;">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>            
+        </div>
+            <!-- Story Viewer Modal -->
+        <div id="storyViewerModal" style="display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column;">
+            
+            <!-- Top Header Overlay -->
+            <div style="position: absolute; top: 12px; left: 16px; right: 16px; z-index: 20; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Progress Bars -->
+                <div id="storyProgressBarContainer" style="display: flex; gap: 4px; width: 100%;"></div>
+                
+                <!-- User Info & Actions -->
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="storyViewerUser" style="color: #fff; font-weight: 600; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.6);"></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <button id="storyDeleteBtn" onclick="deleteCurrentStory()" style="display: none; background: rgba(0,0,0,0.5); border: none; color: #ff4d4d; font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 4px;">🗑️</button>
+                        <button onclick="closeStoryViewer()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.6);">×</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Display Wrapper (Fixed with flex: 1) -->
+            <div id="storyViewerMediaWrapper" style="position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+        </div>
+
+
+        <!-- Note: Kept original id="dashboardScreen" and class="screen active" so app.js works perfectly -->
+                <!-- 2. CHATS TAB VIEW -->
+                    <div id="dashboardScreen" class="screen active">
+                        <header class="app-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+                            <!-- Avatar removed, only title remains -->
+                            <h1 style="margin: 0; font-size: 1.25rem; font-weight: bold;">Chats</h1>
+                            
+                            <!-- Toggle Search Button -->
+                            <button id="toggleSearchBtn" onclick="openSearchModal()" style="background: #e5e7eb; color: #374151; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">🔍 Search</button>
+                        </header>
+
+                        <div class="chat-list" id="activeChatsContainer">
+                            <!-- Active running chats load dynamically here -->
+                        </div>
+                    </div>
+    <!-- 3. FEED TAB VIEW -->
+<div id="feedScreen" class="screen">
+    <header class="app-header" style="flex-shrink: 0; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-size: 1.25rem; font-weight: bold; margin: 0;">Community Feed</h1>
+    </header>
+
+    <!-- Posts Feed Stream Container -->
+    <div id="postsStreamContainer" style="flex: 1; overflow-y: auto; padding:0px; padding-bottom: 80px;">
+        <!-- Dynamic posts load here -->
+    </div>
+</div>
+
+    <!-- 4. PROFILE TAB VIEW -->
+<div id="profileScreen" class="screen">
+    <header class="app-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="margin: 0; font-size: 1.25rem; font-weight: bold;">My Profile</h1>
+    </header>
+
+    
+    <div class="profile-card">
+        <div class="profile-avatar-container" style="position: relative; display: inline-block;">
+            <img id="profile-pic" src="https://via.placeholder.com/100" alt="Profile Picture" class="profile-avatar">
+            
+            <!-- Label acts as the clickable trigger for the hidden file input -->
+            <label for="profileImageInput" class="icon-btn" style="cursor: pointer; position: absolute; bottom: 0; right: 0; background: #4c6ef5; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px;" title="Change Avatar">
+                ✏️
+            </label>
+            <!-- Hidden file picker -->
+            <input type="file" id="profileImageInput" style="display:none;" accept="image/*">
+        </div>
+        <h1 id="profile-name" style="font-weight: 600; margin-top: 8px;">Loading...</h1>
+        <h4 id="profile-username" style="font-weight: 400; margin-top: 8px;">Loading...</h4>
+        <p id="profile-bio" class="text-muted" style="font-size: 0.9rem; margin-top: 4px;">No bio added yet.</p>
+        <p id="profile-joined" class="text-muted" style="font-size: 0.8rem; margin-top: 4px;">Joined recently</p>
+    </div>
+
+    <div class="profile-actions" style="padding: 0 16px;">
+        <button id="update-bio-btn" class="btn-secondary" style="width: 100%; margin-bottom: 8px;">Edit Bio / Details</button>
+        <button id="logout-btn" class="btn-danger" style="width: 100%;">Log Out</button>
+        <a href="admin.html" id="adminCreateUserBtn" style="display: none; margin-top: 15px; background-color: #10b981; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; width: 100%; box-sizing: border-box;">
+        Create New User
+    </a>
+        <a href="delete-account.html" id="DeleteUserAccount">
+       Delete Trebor Account Permanently
+    </a>
+    </div>
+</div>
+
+<!-- 5. CHAT ROOM VIEW (Polished Layout) -->
+        <div id="chatRoomScreen" class="screen">
+            <header class="app-header" style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 56px; background: #ffffff; border-bottom: 1px solid #f1f3f5;">
+                
+                <!-- Interactive header user block layout row -->
+                <div class="chat-header-user-row" onclick="handleHeaderProfileClick()" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <img id="chatTargetAvatar" src="https://placeholder.com" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #e9ecef;">
+                    <h3 id="chatTargetName" style="margin: 0; font-size: 16px; font-weight: 700; color: #1a1b1e;">Username</h3>
+                    <span id="chatTargetStatus" style="font-size: 12px; color: #9ca3af; font-weight: 500;"></span>
+                </div>
+
+                <button id="backToDashboard" style="background:none; border:none; font-size:16px; cursor:pointer; color:#4c6ef5; font-weight: 500;">◀ Back</button>
+            </header>
+
+            <div class="message-area" id="messageDisplayArea">
+                <!-- Dynamic message blocks inject here -->
+            </div>
+
+        <div class="input-tray" style="flex-shrink: 0;">
+            <label class="attach-btn" for="chatImageUpload">📷</label>
+            <input type="file" id="chatImageUpload" style="display:none;" accept="image/*">
+            <input type="text" id="messageInput" placeholder="Message expires in 24h..." style="flex:1;">
+            <button id="sendMessageBtn" class="btn" style="width:auto; padding:10px 20px;">Send</button>
+        </div>
+    </div>
+
+    <!-- PLACED OUTSIDE THE VIEW FLOW: This prevents it from breaking your layout fields or hiding inputs -->
+<div id="profileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center;" onclick="closeProfileModal(event)">
+    <div style="background: #ffffff; width: 80%; max-width: 320px; padding: 24px; border-radius: 20px; text-align: center; position: relative;" onclick="event.stopPropagation()">
+        <!-- Close Button -->
+        <button style="position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; color: #888; cursor: pointer;" onclick="closeProfileModal(event)">&times;</button>
+        
+        <!-- Profile Picture Content -->
+        <img id="modalUserDp" src="https://placeholder.com" alt="User DP" class="profile-avatar">
+        
+        <!-- Details -->
+        <h2 id="modalUserName" style="margin: 4px 0; font-size: 20px; color: #212121; font-family: sans-serif;">Loading...</h2>
+        <p style="font-size: 14px; color: #666; margin-top: 6px; font-family: sans-serif;">Member since: <span id="modalUserJoinedDate">-</span></p>
+    </div>
+</div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav id="bottomNav">
+        <button onclick="switchAppTab('homeScreen', this)" class="nav-tab-btn flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-gray-600 transition-colors" style="background:none; border:none; cursor:pointer;">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span class="text-xs mt-1 font-medium">Home</span>
+        </button>
+        <button onclick="switchAppTab('dashboardScreen', this)" class="nav-tab-btn flex flex-col items-center justify-center flex-1 h-full text-indigo-600 hover:text-gray-600 transition-colors" style="background:none; border:none; cursor:pointer;">
+            <i class="fa-solid fa-comment-dots text-lg"></i>
+            <span class="text-xs mt-1 font-medium">Chats</span>
+        </button>
+        <!-- Central Create Button -->
+    <button onclick="openCreateSheet()" style="background: #0095f6; color: white; border: none; width: 38px; height: 38px; border-radius: 50%; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,149,246,0.3);">+</button>
+        <button onclick="switchAppTab('feedScreen', this)" class="nav-tab-btn flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-gray-600 transition-colors" style="background:none; border:none; cursor:pointer;">
+            <i class="fa-solid fa-rss text-lg"></i>
+            <span class="text-xs mt-1 font-medium">Feed</span>
+        </button>
+        <button onclick="switchAppTab('profileScreen', this)" class="nav-tab-btn flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-gray-600 transition-colors" style="background:none; border:none; cursor:pointer;">
+            <i class="fa-solid fa-user text-lg"></i>
+            <span class="text-xs mt-1 font-medium">Profile</span>
+        </button>
+    </nav>
+
+</div>
+
+<div id="profileModal" class="modal-overlay" onclick="closeProfileModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closeProfileModal(event)">&times;</button>
+        <img id="modalUserDp" src="https://placeholder.com" alt="User DP">
+        <h2 id="modalUserName">Loading...</h2>
+        <p class="modal-meta">Member since: <span id="modalUserJoinedDate">-</span></p>
+    </div>
+</div>
+
+<!-- Global Full-View Media Modal (Lightbox) -->
+<div id="mediaModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 10000; justify-content: center; align-items: center; cursor: zoom-out;">
+    <span style="position: absolute; top: 20px; right: 30px; color: #fff; font-size: 36px; font-weight: bold; cursor: pointer; z-index: 10001;" onclick="closeMediaModal()">&times;</span>
+    <img id="modalImage" style="max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" alt="Enlarged view">
+</div>
+
+<!-- Live Contact Search Modal -->
+<div id="searchModal" class="modal-overlay">
+    <div class="search-modal-box">
+        <button class="modal-close-btn" onclick="closeSearchModal()">&times;</button>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <div style="background: #eef2ff; color: #4c6ef5; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                👥
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1a1a1a;">New Conversation</h3>
+                <p style="margin: 2px 0 0; font-size: 13px; color: #868e96;">Search contacts to connect</p>
+            </div>
+        </div>
+        
+        <div style="position: relative; margin-bottom: 16px;">
+            <input type="text" id="contactSearchInput" placeholder="Search by name or username..." style="width: 100%; padding: 12px 14px; border: 1.5px solid #e9ecef; border-radius: 12px; font-size: 14px; outline: none; background: #f8f9fa; color: #1a1a1a;">
+        </div>
+
+        <div id="searchResultsList" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Dynamic search items populate here -->
+        </div>
+    </div>
+</div>
+
+<!-- Creation Bottom Sheet Modal -->
+<div id="createSheetBackdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000;" onclick="closeCreateSheet()"></div>
+
+<div id="createBottomSheet" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; z-index: 1001; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); max-height: 85vh; overflow-y: auto; transition: transform 0.3s ease;">
+    
+    <!-- Drag Handle / Header -->
+    <div style="width: 40px; height: 4px; background: #dbdbdb; border-radius: 2px; margin: 0 auto 16px auto;"></div>
+    
+    <!-- STAGE 1: Option Selection Menu -->
+    <div id="sheetMenuStage">
+        <h3 style="font-size: 16px; font-weight: 600; color: #262626; margin-bottom: 16px; text-align: center;">Create New</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="selectCreationType('post')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                📸 Post
+            </button>
+            <button onclick="selectCreationType('reel')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                🎬 Reel
+            </button>
+            <button onclick="selectCreationType('story')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                ⭕ Story
+            </button>
+            <label style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                <span>📸 Snap</span>
+                <input type="file" id="snapFileInput" accept="image/*,video/*" capture="environment" style="display: none;" />
+            </label>
+            <button onclick="handlePaidFeature('👥 Group Chat')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                <span>👥 Group Chat</span>
+                <span style="font-size: 11px; background: #dbdbdb; padding: 2px 6px; border-radius: 4px; color: #555;">Subscribe To Premium Plan</span>
+            </button>
+            <button onclick="handlePaidFeature('🛜 Channels')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                <span>🛜 Channels</span> 
+                <span style="font-size: 11px; background: #dbdbdb; padding: 2px 6px; border-radius: 4px; color: #555;">Subscribe To Premium Plan</span>
+            </button>
+            <button onclick="handlePaidFeature('🛍️ Listings')" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; background: #fafafa; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #262626; cursor: pointer;">
+                <span>🛍️ Listings</span>
+                <span style="font-size: 11px; background: #dbdbdb; padding: 2px 6px; border-radius: 4px; color: #555;">Subscribe To Premium Plan</span>
+            </button>
+            <button disabled style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 16px; background: #f5f5f5; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #a8a8a8; cursor: not-allowed;">
+                <span>🔴 Live</span>
+                <span style="font-size: 11px; background: #dbdbdb; padding: 2px 6px; border-radius: 4px; color: #555;">Coming Soon</span>
+            </button>
+            <button disabled style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 16px; background: #f5f5f5; border: 1px solid #efefef; border-radius: 10px; font-size: 14px; font-weight: 600; color: #a8a8a8; cursor: not-allowed;">
+                <span>📡 Streaming</span>
+                <span style="font-size: 11px; background: #dbdbdb; padding: 2px 6px; border-radius: 4px; color: #555;">Coming Soon</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- STAGE 2: Media Preview & Form Stage (Hidden Initially) -->
+    <div id="sheetFormStage" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <button onclick="backToSheetMenu()" style="background: none; border: none; font-size: 14px; font-weight: 600; color: #0095f6; cursor: pointer;">← Back</button>
+            <h3 id="formStageTitle" style="font-size: 15px; font-weight: 600; color: #262626;">New Post</h3>
+            <div style="width: 40px;"></div> <!-- Spacer -->
+        </div>
+
+        <!-- Hidden File Input -->
+        <input type="file" id="sheetFileInput" accept="image/*,video/*" style="display: none;" onchange="handleFilePreview(this)">
+
+        <!-- Upload Trigger / Preview Box -->
+        <div id="mediaPreviewContainer" onclick="document.getElementById('sheetFileInput').click()" style="width: 100%; height: 200px; background: #fafafa; border: 2px dashed #dbdbdb; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; margin-bottom: 12px;">
+            <div id="previewPlaceholder" style="text-align: center; color: #8e8e96; font-size: 13px;">
+                <span style="font-size: 28px; display: block; margin-bottom: 4px;">📁</span>
+                Tap to select file
+            </div>
+        </div>
+
+        <!-- Caption Input -->
+        <textarea id="sheetCaptionInput" placeholder="Write a caption..." style="width: 100%; height: 80px; padding: 10px; font-size: 13px; border: 1px solid #dbdbdb; border-radius: 8px; resize: none; outline: none; margin-bottom: 12px;"></textarea>
+
+        <!-- Submit Button -->
+        <button onclick="submitCreation()" style="width: 100%; background: #0095f6; color: white; border: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer;">Share</button>
+    </div>
+
+</div>
+
+
+<!-- Friend Selection Modal -->
+<div id="friendSelectionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.65); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: #ffffff; width: 92%; max-width: 380px; max-height: 75vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        
+        <!-- Modal Header -->
+        <div style="padding: 16px 20px; border-bottom: 1px solid #efefef; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 17px; font-weight: 600; color: #111111;">Send Snap to</h3>
+            <button id="closeSnapModalBtn" style="background: #f0f0f0; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; font-weight: bold; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+
+        <!-- Friend List Container (Scrollable) -->
+        <div id="friendsCheckboxList" style="padding: 8px 16px; overflow-y: auto; flex-grow: 1;">
+            <!-- Dynamic friend rows inject here -->
+        </div>
+
+        <!-- Modal Footer -->
+        <div style="padding: 14px 20px; border-top: 1px solid #efefef; background: #fafafa; display: flex; justify-content: flex-end;">
+            <button id="sendSnapBtn" style="background: #0095f6; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(0,149,246,0.3);">Send</button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Onscreen Debug Console ------- For checking Logs on phone
+<div id="debugConsole" style="position: fixed; bottom: 0; left: 0; width: 100%; max-height: 150px; background: rgba(0,0,0,0.85); color: #00ff00; font-family: monospace; font-size: 11px; padding: 8px; overflow-y: auto; z-index: 999999; display: none; box-sizing: border-box;">
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 4px; margin-bottom: 4px;">
+        <span><strong>Debug Logs</strong></span>
+        <button onclick="document.getElementById('debugConsole').style.display='none'" style="background:none; border:none; color:white; font-weight:bold;">×</button>
+    </div>
+    <div id="debugLogsList"></div>
+</div>
+
+<script>
+// Override console.log and console.error to show on screen automatically
+(function() {
+    const consoleDiv = document.getElementById('debugConsole');
+    const logsList = document.getElementById('debugLogsList');
+    
+    function appendLog(type, args) {
+        consoleDiv.style.display = 'block';
+        const msg = Array.from(args).map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+        const item = document.createElement('div');
+        item.style.color = type === 'error' ? '#ff6b6b' : '#00ff00';
+        item.style.margin = '2px 0';
+        item.textContent = `[${type}] ${msg}`;
+        logsList.appendChild(item);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    const oldLog = console.log;
+    const oldError = console.error;
+
+    console.log = function() {
+        oldLog.apply(console, arguments);
+        appendLog('log', arguments);
+    };
+
+    console.error = function() {
+        oldError.apply(console, arguments);
+        appendLog('error', arguments);
+    };
+})();
+</script> -->
+
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/app.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

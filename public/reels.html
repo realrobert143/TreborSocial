@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TreborSocial Reels</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        .reels-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .reels-container::-webkit-scrollbar { display: none; }
+
+        .reel-card {
+            height: 100vh;
+            max-height: 100vh;
+            width: 100%;
+            max-width: 100%;
+            overflow: visible; /* Ensure dropdown menus aren't clipped */
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .reel-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .reel-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 75px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            padding: 10px;
+            border-radius: 12px;
+            pointer-events: auto;
+            z-index: 5;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .actions-sidebar {
+            position: absolute;
+            right: 16px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #fff;
+            z-index: 5;
+        }
+
+        .action-btn {
+            background: rgba(0,0,0,0.4);
+            border: none;
+            color: #fff;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 10;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .menu-btn-overlay {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="back-btn" onclick="window.history.back()">← Back</button>
+
+    <div class="reels-container" id="reelsContainer">
+        <div style="color: #fff; text-align: center; margin-top: 50vh;">Loading reels...</div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+
+        async function initUserSession() {
+            try {
+                const res = await fetch('/api/users/me', { credentials: 'include' });
+                if (res.ok) {
+                    const user = await res.json();
+                    currentUserId = user.id;
+                }
+            } catch (err) {
+                console.error("Could not fetch user session", err);
+            }
+        }
+
+        async function loadReels() {
+            try {
+                const res = await fetch('/api/reels', { credentials: 'include' });
+                if (!res.ok) return;
+                const reels = await res.json();
+                const container = document.getElementById('reelsContainer');
+
+                if (!reels || reels.length === 0) {
+                    container.innerHTML = '<div style="color: #fff; text-align: center; margin-top: 50vh;">No reels found</div>';
+                    return;
+                }
+
+                container.innerHTML = reels.map(reel => {
+                    const isOwner = Number(reel.user_id) === Number(currentUserId);
+                    return `
+                    <div class="reel-card" data-id="${reel.id}">
+                        <video class="reel-video" src="${reel.video_url}#t=0.001" loop playsinline onclick="togglePlay(this, event)"></video>
+                        <div class="play-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; font-size: 36px; background: rgba(0,0,0,0.5); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding-left: 4px; color: white; opacity: 1; transition: opacity 0.2s; z-index: 5;">▶</div>
+                        
+                        <div class="post-menu-container" style="position: absolute; top: 20px; right: 20px; z-index: 20;">
+                            <button class="menu-btn-overlay post-menu-btn" data-id="${reel.id}" title="More options">⋮</button>
+                            <div class="post-dropdown-menu" id="menu-${reel.id}" style="display: none; position: absolute; right: 0; top: 38px; background: #ffffff; border: 1px solid #dbdbdb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 100; min-width: 140px; overflow: hidden; text-align: left;">
+                                ${isOwner ? `
+                                    <button class="dropdown-item delete-reel-btn" data-id="${reel.id}" style="display: block; width: 100%; padding: 10px 14px; background: none; border: none; text-align: left; color: #ed4956; font-weight: 500; cursor: pointer; font-size: 13px;">Delete Reel</button>
+                                ` : `
+                                    <button class="dropdown-item report-post-btn" data-id="${reel.id}" data-type="reel" style="display: block; width: 100%; padding: 10px 14px; background: none; border: none; text-align: left; color: #262626; cursor: pointer; font-size: 13px; border-bottom: 1px solid #efefef;">Report Reel</button>
+                                    <button class="dropdown-item block-user-btn" data-userid="${reel.user_id}" style="display: block; width: 100%; padding: 10px 14px; background: none; border: none; text-align: left; color: #ed4956; cursor: pointer; font-size: 13px;">Block User</button>
+                                `}
+                            </div>
+                        </div>
+
+                        <div class="reel-overlay">
+                            <div class="user-info">
+                                <img src="${reel.profile_pic_url || 'https://via.placeholder.com/40'}">
+                                <span style="font-weight: 600; font-size: 14px;">@${reel.name || 'User'}</span>
+                            </div>
+                            <div style="font-size: 13px; line-height: 1.4;">${reel.caption || ''}</div>
+                        </div>
+
+                        <div class="actions-sidebar">
+                            <button class="action-btn" onclick="toggleLike(${reel.id}, this)">
+                                ${reel.is_liked ? '❤️' : '🤍'}
+                            </button>
+                            <span style="font-size: 12px; font-weight: 600;" id="likes-count-${reel.id}">${reel.likes_count || 0}</span>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                initIntersectionObserver();
+            } catch (err) {
+                console.error('Error loading reels:', err);
+            }
+        }
+
+        function togglePlay(video) {
+            const card = video.closest('.reel-card');
+            const indicator = card.querySelector('.play-indicator');
+
+            if (video.paused) {
+                video.play();
+                if (video.muted) video.muted = false; 
+                indicator.style.opacity = '0';
+            } else {
+                video.pause();
+                indicator.style.opacity = '1';
+            }
+        }
+
+        async function toggleLike(reelId, btn) {
+            try {
+                const res = await fetch(`/api/reels/${reelId}/like`, { 
+                    method: 'POST', 
+                    credentials: 'include' 
+                });
+                const data = await res.json();
+                const countEl = document.getElementById(`likes-count-${reelId}`);
+                let currentCount = parseInt(countEl.textContent) || 0;
+
+                if (data.liked) {
+                    btn.textContent = '❤️';
+                    countEl.textContent = currentCount + 1;
+                } else {
+                    btn.textContent = '🤍';
+                    countEl.textContent = Math.max(0, currentCount - 1);
+                }
+            } catch (err) {
+                console.error('Error liking reel:', err);
+            }
+        }
+
+        function initIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    const indicator = entry.target.querySelector('.play-indicator');
+                    if (!video) return;
+
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.reel-video').forEach(v => {
+                            if (v !== video) {
+                                v.pause();
+                                v.currentTime = 0;
+                            }
+                        });
+
+                        video.play().then(() => {
+                            if (indicator) indicator.style.opacity = '0';
+                        }).catch(() => {
+                            if (indicator) indicator.style.opacity = '1';
+                        });
+                    } else {
+                        video.pause();
+                        video.currentTime = 0;
+                        if (indicator) indicator.style.opacity = '1';
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
+        }
+
+        // Single Unified Global Event Listener for Menu Toggling & Compliance Actions
+        document.addEventListener('click', async (e) => {
+            const menuBtn = e.target.closest('.post-menu-btn');
+            if (menuBtn) {
+                e.stopPropagation();
+                const id = menuBtn.getAttribute('data-id');
+                const menu = document.getElementById(`menu-${id}`);
+                
+                document.querySelectorAll('.post-dropdown-menu').forEach(m => {
+                    if (m !== menu) m.style.display = 'none';
+                });
+
+                if (menu) {
+                    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                }
+                return;
+            }
+
+            if (!e.target.closest('.post-menu-container')) {
+                document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+            }
+
+            // Block User
+            if (e.target.classList.contains('block-user-btn')) {
+                const blockedId = e.target.getAttribute('data-userid');
+                if (confirm("Are you sure you want to block this user?")) {
+                    try {
+                        const res = await fetch('/api/user/block', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ blockedId })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert("User blocked successfully.");
+                            location.reload();
+                        } else {
+                            alert(data.error || "Failed to block user.");
+                        }
+                    } catch (err) {
+                        console.error("Error blocking user:", err);
+                    }
+                }
+            }
+
+            // Report Reel
+            if (e.target.classList.contains('report-post-btn')) {
+                const targetId = e.target.getAttribute('data-id');
+                const reason = prompt("Select reason for reporting (e.g., Spam, Harassment):");
+                if (reason) {
+                    try {
+                        const res = await fetch('/api/report', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ targetId, reason })
+                        });
+                        const data = await res.json();
+                        alert(data.message || "Report submitted.");
+                    } catch (err) {
+                        console.error("Error reporting content:", err);
+                    }
+                }
+            }
+
+            // Delete Reel
+            if (e.target.classList.contains('delete-reel-btn')) {
+                const itemId = e.target.getAttribute('data-id');
+                if (confirm("Are you sure you want to delete this reel?")) {
+                    try {
+                        const res = await fetch(`/api/reels/${itemId}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            const card = document.querySelector(`.reel-card[data-id="${itemId}"]`);
+                            if (card) card.remove();
+                        } else {
+                            alert("Failed to delete reel.");
+                        }
+                    } catch (err) {
+                        console.error("Error deleting reel:", err);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initUserSession();
+            loadReels();
+        });
+    </script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/app.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
